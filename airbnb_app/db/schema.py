@@ -1,11 +1,12 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 from typing import Optional
 from datetime import datetime
-from .models import RoleChoices, PropertyTypeChoices, RulesChoices, BookingStatusChoices
+from .models import (RoleChoices, PropertyTypeChoices,
+                     RulesChoices, BookingStatusChoices,
+                     bcrypt)
 
 
 class UserProfileSchema(BaseModel):
-    id: int
     username: str
     email: EmailStr
     password: str
@@ -18,7 +19,23 @@ class UserProfileSchema(BaseModel):
         from_attributes = True
 
 
-class Images(BaseModel):
+class UserProfileLoginSchema(BaseModel):
+    username: str
+    password: str
+
+    class Config:
+        from_attributes = True
+
+
+class UserProfileUpdateSchema(BaseModel):
+    username: str
+    password: str
+    email: Optional[str]
+    phone_number: Optional[str]
+    avatar: Optional[str]
+
+
+class PropertyImagesSchema(BaseModel):
     id: int
     image_url: str
     property_id: int
@@ -27,7 +44,7 @@ class Images(BaseModel):
         from_attributes = True
 
 
-class Property(BaseModel):
+class PropertySchema(BaseModel):
     id: int
     title: str
     description: str
@@ -46,12 +63,30 @@ class Property(BaseModel):
         from_attributes = True
 
 
-class Booking(BaseModel):
+class PropertyCreateSchema(BaseModel):
+    title: str
+    description: str
+    price_per_night: int
+    city: str
+    address: str
+    property_type: PropertyTypeChoices
+    rules: RulesChoices
+    max_guests: int
+    bedrooms: int
+    bathrooms: int
+    is_active: bool
+    owner_id: int
+
+    class Config:
+        from_attributes = True
+
+
+class BookingSchema(BaseModel):
     id: int
     status: BookingStatusChoices
     created_at: datetime
-    check_in: int
-    check_out: int
+    check_in: datetime
+    check_out: datetime
     property_id: int
     guest_id: int
 
@@ -59,10 +94,22 @@ class Booking(BaseModel):
         from_attributes = True
 
 
-class Review(BaseModel):
+class BookingCreateSchema(BaseModel):
+    check_in: datetime
+    check_out: datetime
+    property_id: int
+    guest_id: int
+
+    class Config:
+        from_attributes = True
+
+
+
+class ReviewSchema(BaseModel):
     id: int
     comment: str
     created_at: datetime
+    rating: int = Field(None, gt=0, lt=6)
     property_id: int
     guest_id: int
 
@@ -70,10 +117,27 @@ class Review(BaseModel):
         from_attributes = True
 
 
-class Amenity(BaseModel):
-    id: int
-    name: str
-    icon: str
+class ReviewCreateSchema(BaseModel):
+    comment: str
+    rating: int = Field(None, gt=0, lt=6)
+    property_id: int
+    guest_id: int
 
     class Config:
         from_attributes = True
+
+
+class MessageSchema(BaseModel):
+    id: int
+    status: BookingStatusChoices
+    created_at: datetime
+    booking_id: int
+
+    class Config:
+        orm_mode = True
+
+class StatusUpdateSchema(BaseModel):
+    new_status: BookingStatusChoices
+
+    class Config:
+        orm_mode = True
